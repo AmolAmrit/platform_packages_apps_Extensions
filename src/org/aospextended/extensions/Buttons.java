@@ -31,6 +31,7 @@ import android.support.v7.preference.PreferenceCategory;
 import android.support.v7.preference.PreferenceScreen;
 import android.support.v7.preference.Preference.OnPreferenceChangeListener;
 import android.support.v14.preference.SwitchPreference;
+import org.aospextended.extensions.preference.CustomSeekBarPreference;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.WindowManagerGlobal;
@@ -55,6 +56,7 @@ public class Buttons extends ActionFragment implements OnPreferenceChangeListene
 
     private static final String TORCH_POWER_BUTTON_GESTURE = "torch_power_button_gesture";
     private static final String VOLUME_KEY_CURSOR_CONTROL = "volume_key_cursor_control";
+
     private static final String HWKEY_DISABLE = "hardware_keys_disable";
 
     private ListPreference mVolumeKeyCursorControl;
@@ -81,6 +83,18 @@ public class Buttons extends ActionFragment implements OnPreferenceChangeListene
     public static final int KEY_MASK_APP_SWITCH = 0x10;
     public static final int KEY_MASK_CAMERA = 0x20;
     public static final int KEY_MASK_VOLUME = 0x40;
+
+    //Keys
+    private static final String KEY_BUTTON_BRIGHTNESS = "button_brightness";
+    private static final String KEY_BACKLIGHT_TIMEOUT = "backlight_timeout";
+
+    // category keys
+    private static final String CATEGORY_HWKEY = "hardware_keys";
+
+    private ListPreference mVolumeKeyCursorControl;
+    private ListPreference mBacklightTimeout;
+    private CustomSeekBarPreference mButtonBrightness;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -186,6 +200,26 @@ public class Buttons extends ActionFragment implements OnPreferenceChangeListene
            mVolumeKeyCursorControl.setSummary(mVolumeKeyCursorControl.getEntry());
         }
 
+        mBacklightTimeout =
+                (ListPreference) findPreference(KEY_BACKLIGHT_TIMEOUT);
+        mButtonBrightness =
+                (CustomSeekBarPreference) findPreference(KEY_BUTTON_BRIGHTNESS);
+
+        if (mBacklightTimeout != null) {
+            mBacklightTimeout.setOnPreferenceChangeListener(this);
+            int BacklightTimeout = Settings.System.getInt(getContentResolver(),
+                    Settings.System.BUTTON_BACKLIGHT_TIMEOUT, 5000);
+            mBacklightTimeout.setValue(Integer.toString(BacklightTimeout));
+            mBacklightTimeout.setSummary(mBacklightTimeout.getEntry());
+        }
+
+        if (mButtonBrightness != null) {
+            int ButtonBrightness = Settings.System.getInt(getContentResolver(),
+                    Settings.System.BUTTON_BRIGHTNESS, 255);
+            mButtonBrightness.setValue(ButtonBrightness / 1);
+            mButtonBrightness.setOnPreferenceChangeListener(this);
+        }
+
     }
 
     @Override
@@ -216,6 +250,7 @@ public class Buttons extends ActionFragment implements OnPreferenceChangeListene
             mVolumeKeyCursorControl
                     .setSummary(mVolumeKeyCursorControl.getEntries()[volumeKeyCursorControlIndex]);
             return true;
+
         } else if (preference == mTorchPowerButton) {
             int mTorchPowerButtonValue = Integer.valueOf((String) newValue);
             int index = mTorchPowerButton.findIndexOfValue((String) newValue);
@@ -234,6 +269,21 @@ public class Buttons extends ActionFragment implements OnPreferenceChangeListene
             Settings.Secure.putInt(getContentResolver(), Settings.Secure.HARDWARE_KEYS_DISABLE,
                     value ? 1 : 0);
             setActionPreferencesEnabled(!value);
+
+        } else if (preference == mBacklightTimeout) {
+            String BacklightTimeout = (String) newValue;
+            int BacklightTimeoutValue = Integer.parseInt(BacklightTimeout);
+            Settings.System.putInt(getActivity().getContentResolver(),
+                    Settings.System.BUTTON_BACKLIGHT_TIMEOUT, BacklightTimeoutValue);
+            int BacklightTimeoutIndex = mBacklightTimeout
+                    .findIndexOfValue(BacklightTimeout);
+            mBacklightTimeout
+                    .setSummary(mBacklightTimeout.getEntries()[BacklightTimeoutIndex]);
+            return true;
+        } else if (preference == mButtonBrightness) {
+            int value = (Integer) newValue;
+            Settings.System.putInt(getActivity().getContentResolver(),
+                    Settings.System.BUTTON_BRIGHTNESS, value * 1);
             return true;
         }
         return false;
