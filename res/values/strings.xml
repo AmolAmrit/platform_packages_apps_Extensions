@@ -1088,5 +1088,8 @@
 
     <string name="lockscreen_weather_footer_warning">Avoid using Lockscreen weather along with custom Lockscreen clock styles, especially on lower DPI as clock might cut out of screen.</string>
 
+    <string name="button_backlight_on_touch_only_title">Button touch</string>
+    <string name="button_backlight_on_touch_only_summary">Enable backlight with timeout only on button touch</string>
+
 </resources>
 
